@@ -1,0 +1,49 @@
+version: '3.4'
+services:
+  speedtest-tracker:
+    container_name: speedtest-tracker
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - DB_CONNECTION=sqlite
+    volumes:
+      - /media/HDD/docker/speedtesttracker/config:/config
+      - /media/HDD/docker/speedtesttracker/config/keys:/config/keys
+    ports:
+      - 8080:80
+      - 8443:443
+    depends_on:
+      - db
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.speedtest-tracker.entrypoints=http"
+      - "traefik.http.routers.speedtest-tracker.rule=Host(`speedtest-tracker.piercehome.site`)"
+      - "traefik.http.middlewares.speedtest-tracker-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.speedtest-tracker.middlewares=speedtest-tracker-https-redirect"
+      - "traefik.http.routers.speedtest-tracker-secure.entrypoints=https"
+      - "traefik.http.routers.speedtest-tracker-secure.rule=Host(`speedtest-tracker.piercehome.site`)"
+      - "traefik.http.routers.speedtest-tracker-secure.tls=true"
+      - "traefik.http.routers.speedtest-tracker-secure.service=speedtest-tracker"
+      - "traefik.http.services.speedtest-tracker.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+
+  db:
+    image: mariadb:10
+    restart: always
+    environment:
+      - MARIADB_DATABASE=speedtest_tracker
+      - MARIADB_USER=bpierce@bpierce.info
+      - MARIADB_PASSWORD=Astros2023!
+      - MARIADB_RANDOM_ROOT_PASSWORD=true
+    volumes:
+      - speedtest-db:/var/lib/mysql
+volumes:
+  speedtest-db:
+networks:
+  proxy:
+    external: true
+

@@ -1,0 +1,47 @@
+version: '3.5'
+
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+       proxy:
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - CF_API_EMAIL=bpierce@bpierce.info
+      - CF_DNS_API_TOKEN=CNZV5RJ2zTKXsqaP5hOdFvNryDsy_aOgqbTB7iY7
+      # - CF_API_KEY=0e1a2defd2192e091c2ac9e001aa93740953b
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/brxdy/docker/traefik/traefik.yml:/traefik.yml:ro
+      - /home/brxdy/docker/traefik/acme.json:/acme.json
+      - /home/brxdy/docker/traefik/config.yml:/config.yml:ro
+      - /media/HDD/docker/traefik/logs:/var/log/traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`traefik-trusted.piercehome.site`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=brxdy:$$apr1$$NzsIkK.t$$yhLme5cw3EGeuHGgOfYht0"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik-trusted.piercehome.site`)"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].main=piercehome.site"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.piercehome.site"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+
+
+networks:
+  proxy:
+    name: proxy
+    external: true
