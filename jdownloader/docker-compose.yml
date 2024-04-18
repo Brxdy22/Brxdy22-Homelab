@@ -1,0 +1,26 @@
+version: '3'
+services:
+  jdownloader-2:
+    image: jlesage/jdownloader-2
+    ports:
+      - "5800:5800"
+    volumes:
+      - "/home/ubuntu/docker/jdownloader/appdata/jdownloader-2:/config:rw"
+      - "/home/ubuntu/docker/nextcloud/data/admin/files:/output:rw"
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jdownloader.entrypoints=http"
+      - "traefik.http.routers.jdownloader.rule=Host(`jdownloader.your.domain`)"
+      - "traefik.http.middlewares.jdownloader-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.jdownloader.middlewares=qbittorrent-https-redirect"
+      - "traefik.http.routers.jdownloader-secure.entrypoints=https"
+      - "traefik.http.routers.jdownloader-secure.rule=Host(`jdownloader.your.domain`)"
+      - "traefik.http.routers.jdownloader-secure.tls=true"
+      - "traefik.http.routers.jdownloader-secure.service=jdownloader"
+      - "traefik.http.services.jdownloader.loadbalancer.server.port=5800"
+      - "traefik.docker.network=proxy"
+networks:
+  proxy:
+    external: true
