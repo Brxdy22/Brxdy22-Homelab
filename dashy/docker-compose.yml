@@ -1,0 +1,30 @@
+---
+version: "3.8"
+services:
+  dashy:
+    image: lissy93/dashy
+    container_name: dashy
+    ports:
+      - 4000:80
+    volumes:
+      - /home/brxdy/docker/dashy/config/conf.yml:/app/public/conf.yml
+      - /home/brxdy/docker/dashy/dashboard-icons/svg:/app/public/item-icons/icon
+    restart: unless-stopped
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashy.entrypoints=http"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.piercehome.site`)"
+      - "traefik.http.middlewares.dashy-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.dashy.middlewares=dashy-https-redirect"
+      - "traefik.http.routers.dashy-secure.entrypoints=https"
+      - "traefik.http.routers.dashy-secure.rule=Host(`dashy.piercehome.site`)"
+      - "traefik.http.routers.dashy-secure.tls=true"
+      - "traefik.http.routers.dashy-secure.service=dashy"
+      - "traefik.http.services.dashy.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    external: true
