@@ -22,7 +22,7 @@ providers:
 certificatesResolvers:
   cloudflare:
     acme:
-      email: bpierce@bpierce.info #add your email
+      email: YourEmail #add your email
       storage: acme.json
       dnsChallenge:
         provider: cloudflare
