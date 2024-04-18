@@ -40,14 +40,14 @@ services:
       proxy:
     environment:
       TZ: 'America/Chicago'
-      WEBPASSWORD: 'Astros2023!'
+      WEBPASSWORD: 'YourPassword'
       PIHOLE_DNS_: '172.70.9.2#5053'
       DNSMASQ_LISTENING: 'all'
-      VIRTUAL_HOST: pihole.piercehome.site
+      VIRTUAL_HOST: pihole.your.domain
     # Volumes store your data between container upgrades
     volumes:
-      - '/home/brxdy/docker/pihole/config:/etc/pihole/'
-      - '/home/brxdy/docker/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+      - '/home/ubuntu/docker/pihole/config:/etc/pihole/'
+      - '/home/ubuntu/docker/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
     # Recommended but not required (DHCP needs NET_ADMIN)
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
     #cap_add:
@@ -58,11 +58,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.pihole.entrypoints=http"
-      - "traefik.http.routers.pihole.rule=Host(`pihole.piercehome.site`)"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.your.domain`)"
       - "traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.pihole.middlewares=pihole-https-redirect"
       - "traefik.http.routers.pihole-secure.entrypoints=https"
-      - "traefik.http.routers.pihole-secure.rule=Host(`pihole.piercehome.site`)"
+      - "traefik.http.routers.pihole-secure.rule=Host(`pihole.your.domain)"
       - "traefik.http.routers.pihole-secure.tls=true"
       - "traefik.http.routers.pihole-secure.service=pihole"
       - "traefik.http.services.pihole.loadbalancer.server.port=80"
