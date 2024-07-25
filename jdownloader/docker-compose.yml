@@ -6,7 +6,6 @@ services:
       - "5800:5800"
     volumes:
       - "/home/ubuntu/docker/jdownloader/appdata/jdownloader-2:/config:rw"
-      - "/home/ubuntu/docker/nextcloud/data/admin/files:/output:rw"
     networks:
       proxy:
     labels:
