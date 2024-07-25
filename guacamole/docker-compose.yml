@@ -10,11 +10,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.gaucamole.entrypoints=http"
-      - "traefik.http.routers.gaucamole.rule=Host(`guac.piercehome.site`)"
+      - "traefik.http.routers.gaucamole.rule=Host(`guac.your.domain`)"
       - "traefik.http.middlewares.gaucamole-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.gaucamole.middlewares=gaucamole-https-redirect"
       - "traefik.http.routers.gaucamole-secure.entrypoints=https"
-      - "traefik.http.routers.gaucamole-secure.rule=Host(`guac.piercehome.site`)"
+      - "traefik.http.routers.gaucamole-secure.rule=Host(`guac.your.domain`)"
       - "traefik.http.routers.gaucamole-secure.tls=true"
       - "traefik.http.routers.gaucamole-secure.service=gaucamole"
       - "traefik.http.services.gaucamole.loadbalancer.server.port=8080"
