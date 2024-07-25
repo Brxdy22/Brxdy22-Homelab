@@ -9,7 +9,7 @@ services:
       - TZ=Etc/UTC
     volumes:
       - /home/ubuntu/docker/nextcloud/appdata:/config
-      - /home.ubuntu/docker/nextcloud/data:/data
+      - /home/ubuntu/docker/nextcloud/data:/data
     # ports:
     #  - 443:443
     restart: unless-stopped
