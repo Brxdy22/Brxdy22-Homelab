@@ -1,0 +1,28 @@
+version: "2"
+services:
+  guacamole:
+    image: jwetzell/guacamole:1.5.5
+    container_name: guacamole
+    volumes:
+      - postgres:/config
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gaucamole.entrypoints=http"
+      - "traefik.http.routers.gaucamole.rule=Host(`guac.piercehome.site`)"
+      - "traefik.http.middlewares.gaucamole-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.gaucamole.middlewares=gaucamole-https-redirect"
+      - "traefik.http.routers.gaucamole-secure.entrypoints=https"
+      - "traefik.http.routers.gaucamole-secure.rule=Host(`guac.piercehome.site`)"
+      - "traefik.http.routers.gaucamole-secure.tls=true"
+      - "traefik.http.routers.gaucamole-secure.service=gaucamole"
+      - "traefik.http.services.gaucamole.loadbalancer.server.port=8080"
+      - "traefik.docker.network=proxy"
+volumes:
+  postgres:
+    driver: local
+
+networks:
+  proxy:
+    external: true
