@@ -16,12 +16,16 @@ services:
       - 8989:8989 # Sonarr
       - 9696:9696 # Prowlarr
       - 7878:7878 # Radarr
-      - 8096:8096 # Jellyfin
+      - 34400:34400 # Threadfin
+      - 5055:5055 # Jellyseer
+      - 8191:8191 # FlareSolverr
+
     volumes:
-      - /home/ubuntu/docker/arr-stack:/gluetun
+      - /home/ubuntu/docker/arr-stack/gluetun:/gluetun
+    restart: unless-stopped
     environment:
       # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
-      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_SERVICE_PROVIDER=vpnprovider
       - VPN_TYPE=openvpn
       # OpenVPN:
       - OPENVPN_USER= 
@@ -34,6 +38,7 @@ services:
       # Server list updater
       # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
+      - FIREWALL_OUTBOUND_SUBNETS=
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent
     container_name: qbittorrent
@@ -45,7 +50,7 @@ services:
       - WEBUI_PORT=8085
     volumes:
       - /home/ubuntu/docker/arr-stack/qbittorrent:/config
-      - /home/ubuntu/docker/arr-stack/qbittorrent/downloads:/downloads
+      - /home/ubuntu/docker/arr-stack/downloads:/downloads
     depends_on:
       - gluetun
     restart: always
@@ -60,9 +65,9 @@ services:
       - TZ=America/Chicago
     volumes:
       - /home/ubuntu/docker/arr-stack/sonarr/data:/config
-      - /home/ubuntu/docker/arr-stack/sonarr/tvseries:/tv #optional
-      - /home/ubuntu/docker/arr-stack/sonarr/downloadclient-downloads:/downloads #optional
-    restart: unless-stopped
+      - /home/ubuntu/docker/arr-stack/downloads/tvseries:/tv #optional
+      - /home/ubuntu/docker/arr-stack/downloads:/downloads #optional
+    restart: always
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -73,8 +78,22 @@ services:
       - PGID=1000
       - TZ=America/Chicago
     volumes:
-      - /home/ubuntu/docker/arr-stack/prowlarr/data:/config
-    restart: unless-stopped
+      - /home/ubuntu//docker/arr-stack/prowlarr/data:/config
+    restart: always
+
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    network_mode: "service:gluetun"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/Chicago
+    volumes:
+      - /home/ubuntu/docker/arr-stack/flaresolverr/data:/config
+    restart: always
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -86,48 +105,32 @@ services:
       - TZ=America/Chicago
     volumes:
       - /home/ubuntu/docker/arr-stack/radarr/data:/config
-      - /home/ubuntu/docker/arr-stack/radarr/movies:/tv #optional
-      - /home/ubuntu/docker/arr-stack/radarr/downloadclient-downloads:/downloads
-    restart: unless-stopped
+      - /home/ubuntu/docker/arr-stack/downloads/movies:/tv #optional
+      - /home/ubuntu/docker/arr-stack/downloads:/downloads
+    restart: always
 
-  jellyfin:
-    image: jellyfin/jellyfin
-    container_name: jellyfin
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
     network_mode: "service:gluetun"
-    user: 1000:1000
-    #group_add:
-    #  - '109'  # This needs to be the group id of running `stat -c '%g' /dev/dri/renderD128` on the docker host
     environment:
+      - LOG_LEVEL=info
       - TZ=America/Chicago
-      - WEBUI_PORT=8086
+      - WEBUI_PORT=5055
     volumes:
-      - /home/ubuntu/docker/jellyfin/config:/config
-      - /home/ubuntu/docker/jellyfin/cache:/cache
-      - /home/ubuntu/docker/jellyfin/Films:/Films:ro
-      - /home/ubuntu/docker/jellyfin/TVShows:/TVShows:ro
-      - /home/ubuntu/docker/jellyfin/Audiobooks:/Audiobooks:ro
-      - /home/ubuntu/docker/jellyfin/Music:/Music:ro
-    #devices:
-    #  - /dev/dri/renderD128:/dev/dri/renderD128
-    #  - /dev/dri/card0:/dev/dri/card0
-    restart: unless-stopped
-    #labels:
-    #  - "traefik.enable=true"
-    #  - "traefik.http.routers.jellyfin.entrypoints=http"
-    #  - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.your.domain`)"
-    #  - "traefik.http.middlewares.jellyfin-https-redirect.redirectscheme.scheme=https"
-    #  - "traefik.http.routers.jellyfin.middlewares=jellyfin-https-redirect"
-    #  - "traefik.http.routers.jellyfin-secure.entrypoints=https"
-    #  - "traefik.http.routers.jellyfin-secure.rule=Host(`jellyfin.your.domain`)"
-    #  - "traefik.http.routers.jellyfin-secure.tls=true"
-    #  - "traefik.http.routers.jellyfin-secure.service=jellyfin"
-    #  - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
-    #  - "traefik.docker.network=proxy"
-    #networks:
-    #  proxy:
-    #security_opt:
-    #  - no-new-privileges:true
+      - /home/ubuntu/docker/jellyfin/Jellyseerr/config:/app/config
+    restart: always
 
-#networks:
- # proxy:
-   # external: true
+  threadfin:
+    image: fyb3roptik/threadfin
+    container_name: threadfin
+    network_mode: "service:gluetun"
+    environment:
+      - WEBUI_PORT=34400
+      - PUID=1001
+      - PGID=1001
+      - TZ=America/Chicago
+    volumes:
+      - /home/ubuntu/docker/arr-stack/threadfin/conf:/home/threadfin/conf
+      - /home/ubuntu/docker/arr-stack/threadfin/temp:/tmp/threadfin:rw
+    restart: always
